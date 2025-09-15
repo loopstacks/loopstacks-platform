@@ -1,0 +1,101 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: loopstacks-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: loopstacks-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: loopstacks
+      POSTGRES_USER: loopstacks
+      POSTGRES_PASSWORD: dev_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loopstacks -d loopstacks"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # k3d cluster setup service
+  k3d-setup:
+    image: alpine:latest
+    container_name: loopstacks-k3d-setup
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - k3d_data:/var/lib/rancher/k3s
+      - ~/.kube:/output/.kube
+    environment:
+      - CLUSTER_NAME=loopstacks-dev
+      - API_PORT=6443
+      - LB_PORT_HTTP=8081
+      - LB_PORT_HTTPS=8443
+    command: |
+      sh -c "
+        # Install Docker client and kubectl
+        apk add --no-cache docker-cli curl
+
+        # Install k3d
+        curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.7.5 sh
+
+        # Install kubectl
+        curl -LO https://dl.k8s.io/release/\$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+        chmod +x kubectl && mv kubectl /usr/local/bin/
+
+        # Wait for Docker to be available
+        while ! docker info >/dev/null 2>&1; do
+          echo 'Waiting for Docker...'
+          sleep 2
+        done
+
+        # Check if cluster exists
+        if ! k3d cluster list | grep -q loopstacks-dev; then
+          echo 'Creating k3d cluster...'
+          k3d cluster create loopstacks-dev \
+            --api-port 6443 \
+            --port 8081:80@loadbalancer \
+            --port 8443:443@loadbalancer \
+            --agents 2 \
+            --k3s-arg '--disable=traefik@server:*' \
+            --wait
+
+          echo 'Setting up kubeconfig...'
+          mkdir -p /output/.kube
+          k3d kubeconfig get loopstacks-dev > /output/.kube/config
+
+          echo 'Creating namespaces...'
+          kubectl create namespace loopstacks-system --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create namespace loopstacks-dev --dry-run=client -o yaml | kubectl apply -f -
+
+          echo 'k3d cluster setup complete!'
+        else
+          echo 'k3d cluster already exists'
+        fi
+
+        # Keep container running
+        tail -f /dev/null
+      "
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - postgres
+
+volumes:
+  redis_data:
+  postgres_data:
+  k3d_data:
