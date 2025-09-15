@@ -1,0 +1,185 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: loopstacks.loopstacks.io
+spec:
+  group: loopstacks.io
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              description:
+                type: string
+                description: "Human-readable description of this workflow"
+              schema:
+                type: object
+                properties:
+                  input:
+                    type: object
+                    description: "JSON schema for workflow input"
+                  output:
+                    type: object
+                    description: "JSON schema for workflow output"
+                required:
+                - input
+                - output
+              phases:
+                type: object
+                properties:
+                  intake:
+                    type: object
+                    properties:
+                      timeout:
+                        type: string
+                        default: "30s"
+                      validation:
+                        type: object
+                        properties:
+                          required:
+                            type: boolean
+                            default: true
+                          schema:
+                            type: object
+                  bidding:
+                    type: object
+                    properties:
+                      timeout:
+                        type: string
+                        default: "5s"
+                      minBids:
+                        type: integer
+                        default: 1
+                      maxBids:
+                        type: integer
+                        default: 10
+                      selectionStrategy:
+                        type: string
+                        enum: ["first", "random", "best", "all"]
+                        default: "best"
+                  execution:
+                    type: object
+                    properties:
+                      timeout:
+                        type: string
+                        default: "300s"
+                      parallelism:
+                        type: string
+                        enum: ["sequential", "parallel", "adaptive"]
+                        default: "parallel"
+                      retryPolicy:
+                        type: object
+                        properties:
+                          maxRetries:
+                            type: integer
+                            default: 3
+                          backoffStrategy:
+                            type: string
+                            enum: ["linear", "exponential"]
+                            default: "exponential"
+                  output:
+                    type: object
+                    properties:
+                      timeout:
+                        type: string
+                        default: "30s"
+                      aggregationStrategy:
+                        type: string
+                        enum: ["merge", "select", "consensus"]
+                        default: "merge"
+                default:
+                  intake:
+                    timeout: "30s"
+                    validation:
+                      required: true
+                  bidding:
+                    timeout: "5s"
+                    minBids: 1
+                    maxBids: 10
+                    selectionStrategy: "best"
+                  execution:
+                    timeout: "300s"
+                    parallelism: "parallel"
+                    retryPolicy:
+                      maxRetries: 3
+                      backoffStrategy: "exponential"
+                  output:
+                    timeout: "30s"
+                    aggregationStrategy: "merge"
+              capabilities:
+                type: array
+                items:
+                  type: string
+                description: "Required capabilities for this workflow"
+              metadata:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  author:
+                    type: string
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                  category:
+                    type: string
+            required:
+            - description
+            - schema
+            - capabilities
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: ["Pending", "Ready", "Failed"]
+                default: "Pending"
+              message:
+                type: string
+              lastUpdated:
+                type: string
+                format: date-time
+              executions:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    default: 0
+                  successful:
+                    type: integer
+                    default: 0
+                  failed:
+                    type: integer
+                    default: 0
+                  averageDuration:
+                    type: string
+    additionalPrinterColumns:
+    - name: Capabilities
+      type: string
+      jsonPath: .spec.capabilities
+    - name: Status
+      type: string
+      jsonPath: .status.phase
+    - name: Executions
+      type: integer
+      jsonPath: .status.executions.total
+    - name: Success Rate
+      type: string
+      jsonPath: .status.executions.successful/.status.executions.total
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+  scope: Namespaced
+  names:
+    plural: loopstacks
+    singular: loopstack
+    kind: LoopStack
+    shortNames:
+    - ls

@@ -1,0 +1,120 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: realms.loopstacks.io
+spec:
+  group: loopstacks.io
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              description:
+                type: string
+                description: "Human-readable description of this realm"
+              isolation:
+                type: string
+                enum: ["namespace", "cluster", "federated"]
+                default: "namespace"
+                description: "Level of isolation for this realm"
+              resources:
+                type: object
+                properties:
+                  maxAgentInstances:
+                    type: integer
+                    default: 100
+                  maxConcurrentLoops:
+                    type: integer
+                    default: 1000
+                  storageClass:
+                    type: string
+                  redisConfig:
+                    type: object
+                    properties:
+                      replicas:
+                        type: integer
+                        default: 1
+                      memory:
+                        type: string
+                        default: "256Mi"
+              networking:
+                type: object
+                properties:
+                  allowCrossRealmCommunication:
+                    type: boolean
+                    default: false
+                  federationEndpoints:
+                    type: array
+                    items:
+                      type: string
+              governance:
+                type: object
+                properties:
+                  agentApprovalRequired:
+                    type: boolean
+                    default: false
+                  loopAuditingEnabled:
+                    type: boolean
+                    default: true
+                  retentionPolicy:
+                    type: object
+                    properties:
+                      loopHistory:
+                        type: string
+                        default: "30d"
+                      agentLogs:
+                        type: string
+                        default: "7d"
+            required:
+            - description
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+                enum: ["Pending", "Active", "Terminating", "Failed"]
+                default: "Pending"
+              message:
+                type: string
+              lastUpdated:
+                type: string
+                format: date-time
+              agentInstances:
+                type: integer
+                default: 0
+              activeLoops:
+                type: integer
+                default: 0
+              redisStatus:
+                type: string
+                enum: ["Pending", "Ready", "Failed"]
+                default: "Pending"
+    additionalPrinterColumns:
+    - name: Isolation
+      type: string
+      jsonPath: .spec.isolation
+    - name: Status
+      type: string
+      jsonPath: .status.phase
+    - name: Agents
+      type: integer
+      jsonPath: .status.agentInstances
+    - name: Loops
+      type: integer
+      jsonPath: .status.activeLoops
+    - name: Age
+      type: date
+      jsonPath: .metadata.creationTimestamp
+  scope: Namespaced
+  names:
+    plural: realms
+    singular: realm
+    kind: Realm
+    shortNames:
+    - rlm

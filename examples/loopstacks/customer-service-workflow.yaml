@@ -1,0 +1,96 @@
+apiVersion: loopstacks.io/v1
+kind: LoopStack
+metadata:
+  name: customer-service-workflow
+  namespace: default
+spec:
+  description: "Complete customer service workflow with intent detection, sentiment analysis, and response generation"
+  schema:
+    input:
+      type: object
+      properties:
+        customerMessage:
+          type: string
+          description: "Customer's message or inquiry"
+          maxLength: 5000
+        customerContext:
+          type: object
+          description: "Customer context and history"
+          properties:
+            customerId:
+              type: string
+            previousTickets:
+              type: array
+              items:
+                type: object
+            accountType:
+              type: string
+              enum: ["basic", "premium", "enterprise"]
+      required:
+        - customerMessage
+    output:
+      type: object
+      properties:
+        response:
+          type: string
+          description: "Generated response to customer"
+        sentiment:
+          type: string
+          description: "Customer sentiment analysis"
+        intent:
+          type: string
+          description: "Detected customer intent"
+        priority:
+          type: string
+          enum: ["low", "medium", "high", "urgent"]
+          description: "Ticket priority level"
+        suggestedActions:
+          type: array
+          items:
+            type: string
+          description: "Suggested actions for customer service agent"
+        escalationRequired:
+          type: boolean
+          description: "Whether human escalation is needed"
+      required:
+        - response
+        - sentiment
+        - intent
+        - priority
+  phases:
+    intake:
+      timeout: "30s"
+      validation:
+        required: true
+        schema:
+          type: object
+          properties:
+            customerMessage:
+              type: string
+              minLength: 1
+    bidding:
+      timeout: "5s"
+      minBids: 3
+      maxBids: 5
+      selectionStrategy: "all"
+    execution:
+      timeout: "300s"
+      parallelism: "parallel"
+      retryPolicy:
+        maxRetries: 2
+        backoffStrategy: "exponential"
+    output:
+      timeout: "30s"
+      aggregationStrategy: "merge"
+  capabilities:
+    - sentiment-analysis
+    - intent-classification
+    - response-generation
+  metadata:
+    version: "1.0.0"
+    author: "LoopStacks Team"
+    tags:
+      - "customer-service"
+      - "nlp"
+      - "workflow"
+    category: "customer-support"

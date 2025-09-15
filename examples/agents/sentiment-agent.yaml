@@ -1,0 +1,52 @@
+apiVersion: loopstacks.io/v1
+kind: Agent
+metadata:
+  name: sentiment-analyzer
+  namespace: default
+spec:
+  runtime:
+    image: loopstacks/universal-runtime:latest
+    language: typescript
+    resources:
+      cpu: "100m"
+      memory: "128Mi"
+  capabilities:
+    - sentiment-analysis
+    - text-processing
+  schema:
+    input:
+      type: object
+      properties:
+        text:
+          type: string
+          description: "Text to analyze for sentiment"
+          maxLength: 10000
+      required:
+        - text
+    output:
+      type: object
+      properties:
+        sentiment:
+          type: string
+          enum: ["positive", "negative", "neutral"]
+          description: "Detected sentiment"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "Confidence score from 0 to 1"
+        reasoning:
+          type: string
+          description: "Brief explanation of the sentiment analysis"
+      required:
+        - sentiment
+        - confidence
+  metadata:
+    name: "Sentiment Analyzer"
+    description: "Analyzes the emotional tone of text input"
+    version: "1.0.0"
+    author: "LoopStacks Team"
+    tags:
+      - "nlp"
+      - "sentiment"
+      - "analysis"

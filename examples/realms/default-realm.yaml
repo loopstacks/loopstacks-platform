@@ -1,0 +1,22 @@
+apiVersion: loopstacks.io/v1
+kind: Realm
+metadata:
+  name: default-realm
+  namespace: default
+spec:
+  description: "Default realm for development and testing"
+  isolation: "namespace"
+  resources:
+    maxAgentInstances: 50
+    maxConcurrentLoops: 500
+    redisConfig:
+      replicas: 1
+      memory: "512Mi"
+  networking:
+    allowCrossRealmCommunication: false
+  governance:
+    agentApprovalRequired: false
+    loopAuditingEnabled: true
+    retentionPolicy:
+      loopHistory: "30d"
+      agentLogs: "7d"

@@ -1,0 +1,95 @@
+apiVersion: loopstacks.io/v1
+kind: Agent
+metadata:
+  name: response-generator
+  namespace: default
+spec:
+  runtime:
+    image: loopstacks/universal-runtime:latest
+    language: typescript
+    resources:
+      cpu: "200m"
+      memory: "512Mi"
+  capabilities:
+    - response-generation
+    - text-generation
+    - conversation
+  schema:
+    input:
+      type: object
+      properties:
+        intent:
+          type: string
+          description: "Detected user intent"
+        context:
+          type: object
+          description: "Conversation context"
+          properties:
+            userMessage:
+              type: string
+              description: "Original user message"
+            previousResponses:
+              type: array
+              items:
+                type: string
+              description: "Previous bot responses"
+            entities:
+              type: array
+              items:
+                type: object
+              description: "Extracted entities"
+            metadata:
+              type: object
+              description: "Additional metadata"
+        responseStyle:
+          type: string
+          enum: ["formal", "casual", "technical", "friendly"]
+          default: "friendly"
+          description: "Desired response style"
+      required:
+        - intent
+        - context
+    output:
+      type: object
+      properties:
+        response:
+          type: string
+          description: "Generated response text"
+        responseType:
+          type: string
+          enum: ["informational", "question", "action", "clarification"]
+          description: "Type of response generated"
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+          description: "Confidence in the generated response"
+        suggestedFollowUps:
+          type: array
+          items:
+            type: string
+          description: "Suggested follow-up questions or actions"
+        metadata:
+          type: object
+          description: "Additional response metadata"
+          properties:
+            tone:
+              type: string
+            length:
+              type: integer
+            complexity:
+              type: string
+      required:
+        - response
+        - responseType
+        - confidence
+  metadata:
+    name: "Response Generator"
+    description: "Generates contextual responses based on intent and conversation history"
+    version: "1.0.0"
+    author: "LoopStacks Team"
+    tags:
+      - "nlp"
+      - "generation"
+      - "conversation"
+      - "chatbot"
