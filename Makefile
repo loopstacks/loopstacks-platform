@@ -46,9 +46,11 @@ deps: ## Install development dependencies
 	@cd control-plane && npm install
 	@echo "Installing Node.js dependencies for web console..."
 	@cd web-console && npm install
+	@echo "Installing Node.js dependencies for TypeScript runtime..."
+	@cd agent-runtime/typescript/loopstacks && npm install
 	@echo "Dependencies installed successfully!"
 
-build: build-operator build-control-plane build-web-console ## Build all components
+build: build-operator build-control-plane build-web-console build-runtime ## Build all components
 
 build-operator: ## Build the Kubernetes operator
 	@echo "Building operator..."
@@ -64,6 +66,10 @@ build-web-console: ## Build the web console
 	@echo "Building web console..."
 	@cd web-console && npm run build
 
+build-runtime: ## Build the TypeScript runtime package
+	@echo "Building TypeScript runtime..."
+	@cd agent-runtime/typescript/loopstacks && npm run generate-types && npm run build
+
 
 docker-build: ## Build Docker images for all components
 	@echo "Building Docker images..."
@@ -75,7 +81,7 @@ docker-push: docker-build ## Build and push Docker images
 	@docker push $(OPERATOR_IMAGE)
 	@docker push $(CONTROL_PLANE_IMAGE)
 
-test: test-operator test-control-plane test-web-console ## Run all tests
+test: test-operator test-control-plane test-web-console test-runtime ## Run all tests
 
 test-operator: ## Run operator tests
 	@echo "Running operator tests..."
@@ -88,6 +94,10 @@ test-control-plane: ## Run control plane tests
 test-web-console: ## Run web console tests
 	@echo "Running web console tests..."
 	@cd web-console && npm test
+
+test-runtime: ## Run TypeScript runtime tests
+	@echo "Running TypeScript runtime tests..."
+	@cd agent-runtime/typescript/loopstacks && npm test
 
 test-integration: ## Run integration tests
 	@echo "Running integration tests..."
@@ -264,6 +274,8 @@ clean: ## Clean build artifacts
 	@rm -rf control-plane/node_modules/.cache/
 	@rm -rf web-console/dist/
 	@rm -rf web-console/node_modules/.cache/
+	@rm -rf agent-runtime/typescript/loopstacks/dist/
+	@rm -rf agent-runtime/typescript/loopstacks/node_modules/.cache/
 	@docker system prune -f
 
 fmt: ## Format code
@@ -271,6 +283,7 @@ fmt: ## Format code
 	@cd operator && go fmt ./...
 	@cd control-plane && npm run format
 	@cd web-console && npm run lint
+	@cd agent-runtime/typescript/loopstacks && npm run lint || true
 
 lint: ## Lint code
 	@echo "Linting code..."

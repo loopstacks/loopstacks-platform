@@ -41,7 +41,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
             </div>
             <div>
               <h1 className="text-xl font-bold">LoopStacks</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Console</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Cluster Console</p>
             </div>
           </div>
         </div>
