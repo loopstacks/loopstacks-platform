@@ -1,0 +1,20 @@
+{
+  "name": "@loopstacks/registry-web",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@loopstacks/registry-api": "workspace:*",
+    "@loopstacks/shared": "workspace:*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  }
+}

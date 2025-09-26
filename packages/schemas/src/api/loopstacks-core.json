@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loopstacks.io/schemas/api/v1/core.json",
+  "title": "LoopStacks Core API Schema",
+  "description": "Core API schema for LoopStacks platform including runtime operations and agent management.",
+  "type": "object",
+  "definitions": {
+    "AgentRegistration": {
+      "type": "object",
+      "properties": {
+        "agentId": { "type": "string" },
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" },
+            "description": { "type": "string" },
+            "maxConcurrentExecutions": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["agentId", "capabilities"],
+      "additionalProperties": false
+    },
+
+    "LoopExecutionRequest": {
+      "type": "object",
+      "properties": {
+        "loopStackId": { "type": "string" },
+        "loopId": { "type": "string" },
+        "input": {},
+        "context": {
+          "type": "object",
+          "properties": {
+            "sessionId": { "type": "string" },
+            "userId": { "type": "string" },
+            "traceId": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "required": ["loopStackId", "loopId", "input"],
+      "additionalProperties": false
+    },
+
+    "LoopExecutionResponse": {
+      "type": "object",
+      "properties": {
+        "executionId": { "type": "string" },
+        "loopId": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "running", "completed", "failed", "timeout"]
+        },
+        "result": {},
+        "error": { "type": "string" },
+        "executionTime": { "type": "integer" },
+        "agentResults": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/AgentExecutionResult" }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["executionId", "loopId", "status", "createdAt"],
+      "additionalProperties": false
+    },
+
+    "AgentExecutionResult": {
+      "type": "object",
+      "properties": {
+        "agentId": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "result": {},
+        "executionTime": { "type": "integer" },
+        "status": {
+          "type": "string",
+          "enum": ["completed", "failed", "timeout"]
+        },
+        "error": { "type": "string" }
+      },
+      "required": ["agentId", "confidence", "executionTime", "status"],
+      "additionalProperties": false
+    },
+
+    "HealthCheck": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["healthy", "degraded", "unhealthy"]
+        },
+        "version": { "type": "string" },
+        "uptime": { "type": "integer" },
+        "registeredAgents": { "type": "integer" },
+        "activeExecutions": { "type": "integer" }
+      },
+      "required": ["status", "version", "uptime"],
+      "additionalProperties": false
+    }
+  }
+}

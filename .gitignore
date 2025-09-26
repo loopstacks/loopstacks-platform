@@ -142,3 +142,6 @@ kubeconfig*
 # Backup files
 *.bak
 *.backup
+
+# Turborepo
+.turbo/

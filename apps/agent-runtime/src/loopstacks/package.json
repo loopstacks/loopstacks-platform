@@ -1,0 +1,28 @@
+{
+  "name": "@loopstacks/runtime",
+  "version": "0.1.0",
+  "description": "LoopStacks TypeScript runtime and SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "generate-types": "json2ts ../../../schemas/mvp/loopstacks-mvp.json --output src/generated-types.ts",
+    "prebuild": "npm run clean && npm run generate-types",
+    "test": "echo \"No tests specified yet\" && exit 0",
+    "lint": "echo \"No linting configured yet\" && exit 0"
+  },
+  "keywords": ["loopstacks", "agent", "runtime", "sdk"],
+  "author": "LoopStacks",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "json-schema-to-typescript": "^13.1.1"
+  },
+  "dependencies": {},
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ]
+}

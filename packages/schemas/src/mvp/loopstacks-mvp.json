@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loopstacks.io/schemas/v1/minimal.json",
+  "title": "LoopStacks Minimal Schema",
+  "description": "Minimal schema for defining LoopStacks with loop metadata, capabilities, timeout, and aggregation strategy.",
+  "type": "object",
+  "definitions": {
+    "LoopStackDefinition": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+            "version": { "type": "string", "pattern": "^v\\d+\\.\\d+\\.\\d+$" },
+            "description": { "type": "string" }
+          },
+          "required": ["name", "version"],
+          "additionalProperties": false
+        },
+        "spec": {
+          "type": "object",
+          "properties": {
+            "loops": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/LoopDefinition" },
+              "minItems": 1
+            }
+          },
+          "required": ["loops"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["metadata", "spec"],
+      "additionalProperties": false
+    },
+
+    "LoopDefinition": {
+      "type": "object",
+      "properties": {
+        "loopId": {
+          "type": "string",
+          "pattern": "^[A-Z_]+$",
+          "description": "Loop identifier like IN, BID, DO, OUT"
+        },
+        "requiredCapabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 100,
+          "description": "Timeout in milliseconds"
+        },
+        "aggregation": {
+          "type": "object",
+          "properties": {
+            "strategy": {
+              "type": "string",
+              "enum": [
+                "highest_confidence",
+                "collect_all",
+                "consensus",
+                "weighted_average",
+                "first_valid",
+                "merge_objects"
+              ]
+            },
+            "minimumAgents": { "type": "integer", "minimum": 1 },
+            "maximumAgents": { "type": "integer", "minimum": 1 },
+            "confidenceThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+            "consensusThreshold": { "type": "number", "minimum": 0, "maximum": 1 }
+          },
+          "required": ["strategy"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["loopId", "requiredCapabilities", "timeout", "aggregation"],
+      "additionalProperties": false
+    }
+  }
+}

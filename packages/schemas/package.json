@@ -1,0 +1,21 @@
+{
+  "name": "@loopstacks/schemas",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "codegen:ts": "node scripts/generate-ts.js",
+    "codegen:go": "node scripts/generate-go.js",
+    "codegen": "npm run codegen:ts && npm run codegen:go",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist codegen"
+  },
+  "dependencies": {
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "zod-to-json-schema": "^3.22.0"
+  }
+}
